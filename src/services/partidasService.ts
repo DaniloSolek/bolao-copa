@@ -37,22 +37,8 @@ export async function buscarPartidas() {
 export async function buscarPartidasAbertas() {
 
   const { data, error } = await supabase
-    .from('partidas')
-    .select(`
-      *,
-      timeCasa:time_casa_id (
-        id,
-        nome,
-        grupo
-      ),
-      timeFora:time_fora_id (
-        id,
-        nome,
-        grupo
-      )
-    `)
-    .eq('resultado_inserido', false)
-    .order('data_hora', { ascending: true })
+    .from('partidas_abertas')
+    .select('*')
 
   if (error) throw error
   return data
