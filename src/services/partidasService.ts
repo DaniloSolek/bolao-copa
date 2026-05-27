@@ -1,15 +1,12 @@
 import { supabase } from '../lib/supabase'
 
-// =====================================
-// BUSCAR TODAS
-// =====================================
+function brasiliaParaUTC(dataHoraLocal: string): string {
+  return new Date(dataHoraLocal + ':00-03:00').toISOString()
+}
 
 export async function buscarPartidas() {
 
-  const {
-    data,
-    error
-  } = await supabase
+  const { data, error } = await supabase
     .from('partidas')
     .select(`
       *,
@@ -31,20 +28,11 @@ export async function buscarPartidas() {
         user_id
       )
     `)
-    .order('data_hora', {
-      ascending: true
-    })
+    .order('data_hora', { ascending: true })
 
-  if (error) {
-    throw error
-  }
-
+  if (error) throw error
   return data
 }
-
-// =====================================
-// BUSCAR ABERTAS
-// =====================================
 
 export async function buscarPartidasAbertas() {
 
@@ -52,18 +40,21 @@ export async function buscarPartidasAbertas() {
     .from('partidas')
     .select(`
       *,
-      timeCasa:selecoes!partidas_time_casa_id_fkey(*),
-      timeFora:selecoes!partidas_time_fora_id_fkey(*)
+      timeCasa:time_casa_id (
+        id,
+        nome,
+        grupo
+      ),
+      timeFora:time_fora_id (
+        id,
+        nome,
+        grupo
+      )
     `)
     .eq('resultado_inserido', false)
-    .order('data_hora', {
-      ascending: true
-    })
+    .order('data_hora', { ascending: true })
 
-  if (error) {
-    throw error
-  }
-
+  if (error) throw error
   return data
 }
 
@@ -88,25 +79,15 @@ export async function criarPartida({
   const { error } = await supabase
     .from('partidas')
     .insert({
-
       time_casa_id: timeCasaId,
       time_fora_id: timeForaId,
-
-      data_hora: dataHora,
-
+      data_hora: brasiliaParaUTC(dataHora),
       fase,
       grupo
-
     })
 
-  if (error) {
-    throw error
-  }
+  if (error) throw error
 }
-
-// =====================================
-// EDITAR
-// =====================================
 
 export async function editarPartida({
   partidaId,
@@ -127,44 +108,26 @@ export async function editarPartida({
   const { error } = await supabase
     .from('partidas')
     .update({
-
       time_casa_id: timeCasaId,
       time_fora_id: timeForaId,
-
-      data_hora: dataHora,
-
+      data_hora: brasiliaParaUTC(dataHora),
       fase,
       grupo
-
     })
     .eq('id', partidaId)
 
-  if (error) {
-    throw error
-  }
+  if (error) throw error
 }
 
-// =====================================
-// EXCLUIR
-// =====================================
-
-export async function excluirPartida(
-  partidaId: number
-) {
+export async function excluirPartida(partidaId: number) {
 
   const { error } = await supabase
     .from('partidas')
     .delete()
     .eq('id', partidaId)
 
-  if (error) {
-    throw error
-  }
+  if (error) throw error
 }
-
-// =====================================
-// RESULTADO
-// =====================================
 
 export async function salvarResultado(
   partidaId: number,
@@ -216,24 +179,14 @@ export async function salvarResultado(
         .from('pontuacoes')
         .update({
           total_pontos: pontuacao.total_pontos + pontos,
-          acertos_exatos:
-            pontos === 3
-              ? pontuacao.acertos_exatos + 1
-              : pontuacao.acertos_exatos,
-          acertos_vencedor:
-            pontos === 1
-              ? pontuacao.acertos_vencedor + 1
-              : pontuacao.acertos_vencedor,
+          acertos_exatos: pontos === 3 ? pontuacao.acertos_exatos + 1 : pontuacao.acertos_exatos,
+          acertos_vencedor: pontos === 1 ? pontuacao.acertos_vencedor + 1 : pontuacao.acertos_vencedor,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', palpite.user_id)
     }
   }
 }
-
-// =====================================
-// HELPER DE PONTUAÇÃO
-// =====================================
 
 function calcularPontos(
   palpiteCasa: number,
@@ -242,12 +195,7 @@ function calcularPontos(
   golsFora: number
 ): number {
 
-  if (
-    palpiteCasa === golsCasa &&
-    palpiteFora === golsFora
-  ) {
-    return 3
-  }
+  if (palpiteCasa === golsCasa && palpiteFora === golsFora) return 3
 
   const vencedorPalpite =
     palpiteCasa > palpiteFora ? 'casa' :
@@ -257,9 +205,5 @@ function calcularPontos(
     golsCasa > golsFora ? 'casa' :
     golsFora > golsCasa ? 'fora' : 'empate'
 
-  if (vencedorPalpite === vencedorReal) {
-    return 1
-  }
-
-  return 0
+  return vencedorPalpite === vencedorReal ? 1 : 0
 }
