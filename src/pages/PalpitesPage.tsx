@@ -3,10 +3,12 @@ import MobileLayout from '../layouts/MobileLayout'
 import { buscarPartidasAbertas } from '../services/partidasService'
 import { buscarMeusPalpites } from '../services/palpitesService'
 import PartidaCard from '../components/PartidaCard'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function PalpitesPage() {
   const [partidas, setPartidas] = useState<any[]>([])
   const [palpites, setPalpites] = useState<any[]>([])
+  const { usuario } = useAuth()
 
   useEffect(() => { carregarDados() }, [])
 
@@ -39,7 +41,7 @@ export default function PalpitesPage() {
         )}
         {partidas.map((partida) => {
           const palpite = palpites.find((p) => p.partida_id === partida.id)
-          return <PartidaCard key={partida.id} partida={partida} palpite={palpite} />
+          return <PartidaCard key={partida.id} partida={partida} palpite={palpite} userId={usuario?.id} />
         })}
       </div>
     </MobileLayout>
