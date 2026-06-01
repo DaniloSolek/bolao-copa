@@ -4,26 +4,25 @@ function brasiliaParaUTC(dataHoraLocal: string): string {
   return new Date(dataHoraLocal + ':00-03:00').toISOString()
 }
 
-export async function buscarPartidas() {
+const FASES_ELIMINATORIAS = ['pre-oitavas', 'oitavas', 'quartas', 'semi', 'final', 'terceiro']
 
+export function isFaseEliminatoria(fase: string): boolean {
+  return FASES_ELIMINATORIAS.includes(fase)
+}
+
+export async function buscarPartidas() {
   const { data, error } = await supabase
     .from('partidas')
     .select(`
       *,
-      timeCasa:time_casa_id (
-        id,
-        nome,
-        grupo
-      ),
-      timeFora:time_fora_id (
-        id,
-        nome,
-        grupo
-      ),
+      timeCasa:time_casa_id ( id, nome, grupo ),
+      timeFora:time_fora_id ( id, nome, grupo ),
+      timeClassificado:time_classificado_id ( id, nome ),
       palpites (
         id,
         palpite_casa,
         palpite_fora,
+        palpite_classificado_id,
         pontos,
         user_id
       )
@@ -35,7 +34,6 @@ export async function buscarPartidas() {
 }
 
 export async function buscarPartidasAbertas() {
-
   const { data, error } = await supabase
     .from('partidas_abertas')
     .select('*')
@@ -43,10 +41,6 @@ export async function buscarPartidasAbertas() {
   if (error) throw error
   return data
 }
-
-// =====================================
-// CRIAR
-// =====================================
 
 export async function criarPartida({
   timeCasaId,
@@ -61,7 +55,6 @@ export async function criarPartida({
   fase: string
   grupo: string
 }) {
-
   const { error } = await supabase
     .from('partidas')
     .insert({
@@ -90,7 +83,6 @@ export async function editarPartida({
   fase: string
   grupo: string
 }) {
-
   const { error } = await supabase
     .from('partidas')
     .update({
@@ -106,7 +98,6 @@ export async function editarPartida({
 }
 
 export async function excluirPartida(partidaId: number) {
-
   const { error } = await supabase
     .from('partidas')
     .delete()
@@ -118,14 +109,16 @@ export async function excluirPartida(partidaId: number) {
 export async function salvarResultado(
   partidaId: number,
   golsCasa: number,
-  golsFora: number
+  golsFora: number,
+  timeClassificadoId: number | null,
+  fase: string
 ) {
-
   const { error } = await supabase
     .from('partidas')
     .update({
       gols_casa: golsCasa,
       gols_fora: golsFora,
+      time_classificado_id: timeClassificadoId,
       resultado_inserido: true
     })
     .eq('id', partidaId)
@@ -134,54 +127,51 @@ export async function salvarResultado(
 
   const { data: palpites, error: erroPalpites } = await supabase
     .from('palpites')
-    .select('id, user_id, palpite_casa, palpite_fora')
+    .select('id, user_id, palpite_casa, palpite_fora, palpite_classificado_id')
     .eq('partida_id', partidaId)
 
   if (erroPalpites) throw erroPalpites
   if (!palpites || palpites.length === 0) return
 
-  for (const palpite of palpites) {
+  const eliminatoria = isFaseEliminatoria(fase)
 
-    const pontos = calcularPontos(
-      palpite.palpite_casa,
-      palpite.palpite_fora,
+  for (const palpite of palpites) {
+    const pontos = calcularPontos({
+      palpiteCasa: palpite.palpite_casa,
+      palpiteFora: palpite.palpite_fora,
+      palpiteClassificadoId: palpite.palpite_classificado_id,
       golsCasa,
-      golsFora
-    )
+      golsFora,
+      timeClassificadoId,
+      eliminatoria
+    })
 
     await supabase
       .from('palpites')
       .update({ pontos })
       .eq('id', palpite.id)
-
-    const { data: pontuacao } = await supabase
-      .from('pontuacoes')
-      .select('total_pontos, acertos_exatos, acertos_vencedor')
-      .eq('user_id', palpite.user_id)
-      .single()
-
-    if (pontuacao) {
-      await supabase
-        .from('pontuacoes')
-        .update({
-          total_pontos: pontuacao.total_pontos + pontos,
-          acertos_exatos: pontos === 3 ? pontuacao.acertos_exatos + 1 : pontuacao.acertos_exatos,
-          acertos_vencedor: pontos === 1 ? pontuacao.acertos_vencedor + 1 : pontuacao.acertos_vencedor,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', palpite.user_id)
-    }
   }
 }
 
-function calcularPontos(
-  palpiteCasa: number,
-  palpiteFora: number,
-  golsCasa: number,
+function calcularPontos({
+  palpiteCasa,
+  palpiteFora,
+  palpiteClassificadoId,
+  golsCasa,
+  golsFora,
+  timeClassificadoId,
+  eliminatoria
+}: {
+  palpiteCasa: number
+  palpiteFora: number
+  palpiteClassificadoId: number | null
+  golsCasa: number
   golsFora: number
-): number {
+  timeClassificadoId: number | null
+  eliminatoria: boolean
+}): number {
 
-  if (palpiteCasa === golsCasa && palpiteFora === golsFora) return 3
+  const placarExato = palpiteCasa === golsCasa && palpiteFora === golsFora
 
   const vencedorPalpite =
     palpiteCasa > palpiteFora ? 'casa' :
@@ -191,5 +181,34 @@ function calcularPontos(
     golsCasa > golsFora ? 'casa' :
     golsFora > golsCasa ? 'fora' : 'empate'
 
-  return vencedorPalpite === vencedorReal ? 1 : 0
+  const acertouResultado = vencedorPalpite === vencedorReal
+
+  // =========================
+  // FASE DE GRUPOS
+  // =========================
+  if (!eliminatoria) {
+    if (placarExato) return 3
+    if (acertouResultado) return 1
+    return 0
+  }
+
+  const foiPenaltis = timeClassificadoId !== null
+
+  const classificadoReal = foiPenaltis
+    ? timeClassificadoId
+    : vencedorReal === 'casa' ? 'casa' : 'fora' // usamos string para comparar abaixo
+
+  const classificadoPalpite = foiPenaltis
+    ? palpiteClassificadoId
+    : vencedorPalpite === 'casa' ? 'casa' : 'fora'
+
+  const acertouClassificado = foiPenaltis
+    ? palpiteClassificadoId === timeClassificadoId
+    : acertouResultado // se não foi pênaltis, acertar resultado = acertar quem passa
+
+  if (placarExato && acertouClassificado) return 4  // placar exato + quem passa ✓
+  if (placarExato && !acertouClassificado) return 3  // placar exato mas errou quem passa nos pênaltis
+  if (!placarExato && acertouClassificado) return 2  // errou placar mas acertou quem passa
+  if (!placarExato && acertouResultado && !acertouClassificado) return 1 // acertou resultado mas errou quem passa
+  return 0
 }

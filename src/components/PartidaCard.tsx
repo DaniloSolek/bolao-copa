@@ -1,22 +1,30 @@
 import { useEffect, useState } from 'react'
 import { salvarPalpite, buscarPalpitesDaPartida } from '../services/palpitesService'
 import { getBandeira } from '../utils/bandeiras'
+import { isFaseEliminatoria as isFaseElim } from '../services/partidasService'
 
 type Props = { partida: any; palpite?: any; userId?: string }
 
 export default function PartidaCard({ partida, palpite, userId }: Props) {
   const [golsCasa, setGolsCasa] = useState('')
   const [golsFora, setGolsFora] = useState('')
+  const [palpiteClassificadoId, setPalpiteClassificadoId] = useState('')
   const [palpitesAberto, setPalpitesAberto] = useState(false)
   const [palpitesTodos, setPalpitesTodos] = useState<any[]>([])
   const [loadingPalpites, setLoadingPalpites] = useState(false)
 
   const jogoBloqueado = new Date() >= new Date(partida.data_hora)
+  const eliminatoria = isFaseElim(partida.fase)
+
+  const palpiteEmpate = golsCasa !== '' && golsFora !== '' && Number(golsCasa) === Number(golsFora)
 
   useEffect(() => {
     if (palpite) {
       setGolsCasa(String(palpite.palpite_casa))
       setGolsFora(String(palpite.palpite_fora))
+      if (palpite.palpite_classificado_id) {
+        setPalpiteClassificadoId(String(palpite.palpite_classificado_id))
+      }
     }
   }, [palpite])
 
@@ -24,7 +32,16 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
     try {
       if (jogoBloqueado) { alert('O jogo já começou'); return }
       if (golsCasa === '' || golsFora === '') { alert('Preencha os dois placares'); return }
-      await salvarPalpite(partida.id, Number(golsCasa), Number(golsFora))
+      if (eliminatoria && palpiteEmpate && !palpiteClassificadoId) {
+        alert('Em fases eliminatórias com empate, selecione quem você acha que passa nos pênaltis')
+        return
+      }
+      await salvarPalpite(
+        partida.id,
+        Number(golsCasa),
+        Number(golsFora),
+        eliminatoria && palpiteEmpate && palpiteClassificadoId ? Number(palpiteClassificadoId) : null
+      )
       alert('Palpite salvo!')
     } catch (error) {
       console.error(error)
@@ -52,6 +69,13 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24
   }
 
+  const selectStyle = {
+    height: 44, borderRadius: 10, width: '100%',
+    border: '1px solid var(--border)',
+    background: 'var(--bg-input)', color: 'var(--text-primary)',
+    padding: '0 12px', fontSize: 14
+  }
+
   return (
     <div style={{
       background: 'var(--bg-card)', borderRadius: 16,
@@ -60,7 +84,6 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
       opacity: jogoBloqueado ? 0.7 : 1,
       overflow: 'hidden'
     }}>
-      {/* CONTEÚDO PRINCIPAL */}
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* CABEÇALHO */}
@@ -79,7 +102,7 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
               <h2 style={{ margin: 0, fontSize: 18, color: 'var(--text-primary)' }}>{partida.timeCasa?.nome}</h2>
             </div>
             <input type="number" min={0} disabled={jogoBloqueado} value={golsCasa}
-              onChange={(e) => setGolsCasa(e.target.value)}
+              onChange={(e) => { setGolsCasa(e.target.value); setPalpiteClassificadoId('') }}
               style={{ width: 60, height: 50, borderRadius: 10, border: '1px solid var(--border)',
                 background: 'var(--bg-input)', color: 'var(--text-primary)', textAlign: 'center', fontSize: 22 }} />
           </div>
@@ -89,11 +112,29 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
               <h2 style={{ margin: 0, fontSize: 18, color: 'var(--text-primary)' }}>{partida.timeFora?.nome}</h2>
             </div>
             <input type="number" min={0} disabled={jogoBloqueado} value={golsFora}
-              onChange={(e) => setGolsFora(e.target.value)}
+              onChange={(e) => { setGolsFora(e.target.value); setPalpiteClassificadoId('') }}
               style={{ width: 60, height: 50, borderRadius: 10, border: '1px solid var(--border)',
                 background: 'var(--bg-input)', color: 'var(--text-primary)', textAlign: 'center', fontSize: 22 }} />
           </div>
         </div>
+
+        {/* SELETOR DE PÊNALTIS */}
+        {eliminatoria && palpiteEmpate && !jogoBloqueado && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+              Empate — quem você acha que passa nos pênaltis?
+            </span>
+            <select
+              value={palpiteClassificadoId}
+              onChange={(e) => setPalpiteClassificadoId(e.target.value)}
+              style={selectStyle}
+            >
+              <option value="">Selecionar...</option>
+              <option value={String(partida.time_casa_id)}>{partida.timeCasa?.nome}</option>
+              <option value={String(partida.time_fora_id)}>{partida.timeFora?.nome}</option>
+            </select>
+          </div>
+        )}
 
         {/* STATUS */}
         {jogoBloqueado && (
@@ -112,17 +153,14 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
         </button>
       </div>
 
-      {/* BARRA EXPANSÍVEL — PALPITES DOS JOGADORES */}
-      <button
-        onClick={togglePalpites}
-        style={{
-          border: 'none', borderTop: '1px solid var(--border)',
-          background: 'transparent', cursor: 'pointer',
-          padding: '10px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          color: 'var(--text-secondary)', fontSize: 13
-        }}
-      >
+      {/* BARRA EXPANSÍVEL */}
+      <button onClick={togglePalpites} style={{
+        border: 'none', borderTop: '1px solid var(--border)',
+        background: 'transparent', cursor: 'pointer',
+        padding: '10px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        color: 'var(--text-secondary)', fontSize: 13
+      }}>
         {loadingPalpites ? 'Carregando...' : palpitesAberto ? '▲ Ocultar palpites' : '▼ Ver palpites dos jogadores'}
       </button>
 
@@ -148,13 +186,10 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
                 border: souEu ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent'
               }}>
                 <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: souEu ? 700 : 400 }}>
-                  {p.profile?.username ?? 'Jogador'} {souEu && <span style={{ color: '#3b82f6', fontSize: 11 }}>(você)</span>}
+                  {p.profile?.username ?? 'Jogador'}{souEu && <span style={{ color: '#3b82f6', fontSize: 11 }}> (você)</span>}
                 </span>
-
                 {naoJogou ? (
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    NP
-                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>NP</span>
                 ) : (
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>
                     {p.palpite_casa} x {p.palpite_fora}

@@ -3,7 +3,8 @@ import { supabase } from '../lib/supabase'
 export async function salvarPalpite(
   partidaId: number,
   golsCasa: number,
-  golsFora: number
+  golsFora: number,
+  palpiteClassificadoId: number | null = null
 ) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Usuário não autenticado')
@@ -14,7 +15,8 @@ export async function salvarPalpite(
       user_id: user.id,
       partida_id: partidaId,
       palpite_casa: golsCasa,
-      palpite_fora: golsFora
+      palpite_fora: golsFora,
+      palpite_classificado_id: palpiteClassificadoId
     }, { onConflict: 'user_id,partida_id' })
 
   if (error) throw error
@@ -43,7 +45,7 @@ export async function buscarPalpitesDaPartida(partidaId: number) {
 
   const { data: palpites, error: erroPalpites } = await supabase
     .from('palpites')
-    .select('palpite_casa, palpite_fora, pontos, user_id')
+    .select('palpite_casa, palpite_fora, palpite_classificado_id, pontos, user_id')
     .eq('partida_id', partidaId)
 
   if (erroPalpites) throw erroPalpites
@@ -55,6 +57,7 @@ export async function buscarPalpitesDaPartida(partidaId: number) {
       profile: { username: profile.username },
       palpite_casa: palpite?.palpite_casa ?? null,
       palpite_fora: palpite?.palpite_fora ?? null,
+      palpite_classificado_id: palpite?.palpite_classificado_id ?? null,
       pontos: palpite?.pontos ?? null,
     }
   })
