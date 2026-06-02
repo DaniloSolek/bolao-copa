@@ -124,6 +124,7 @@ export default function AdminPage() {
             <option value="oitavas">Oitavas</option>
             <option value="quartas">Quartas</option>
             <option value="semi">Semifinal</option>
+            <option value="terceiro">Disputa de 3° lugar</option>
             <option value="final">Final</option>
           </select>
           <select value={grupo} onChange={(e) => setGrupo(e.target.value)} style={selectStyle}>

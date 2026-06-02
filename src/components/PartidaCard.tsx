@@ -63,6 +63,19 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
     }
   }
 
+  function traduzirFase(fase: string) {
+  switch (fase) {
+    case 'grupos': return 'Fase de grupos'
+    case 'pre-oitavas': return 'Pré-oitavas'
+    case 'oitavas': return 'Oitavas de final'
+    case 'quartas': return 'Quartas de final'
+    case 'semi': return 'Semifinal'
+    case 'terceiro': return 'Disputa de 3° lugar'
+    case 'final': return 'Final'
+    default: return fase
+  }
+}
+
   const circulo = {
     width: 42, height: 42, borderRadius: '50%',
     background: 'var(--bg-input)',
@@ -88,7 +101,7 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
 
         {/* CABEÇALHO */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{partida.fase}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{traduzirFase(partida.fase)}</span>
           <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
             {new Date(partida.data_hora).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
           </span>

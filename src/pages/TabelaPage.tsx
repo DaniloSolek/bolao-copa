@@ -47,7 +47,7 @@ export default function TabelaPage() {
     const mapa: any = {}
     Object.keys(tabela).forEach((g) => tabela[g].forEach((t: any) => { mapa[t.nome] = t }))
 
-    partidasEncerradas.forEach((p) => {
+    partidasEncerradas.filter((p) => p.fase === 'grupos').forEach((p) => {
       const casa = mapa[p.timeCasa?.nome]
       const fora = mapa[p.timeFora?.nome]
       if (!casa || !fora) return
@@ -74,7 +74,7 @@ export default function TabelaPage() {
   }, [partidasEncerradas, selecoes])
 
   const fasesMataMata = useMemo(() => {
-    const fases: any = { 'pre-oitavas': [], oitavas: [], quartas: [], semi: [], final: [] }
+    const fases: any = { 'pre-oitavas': [], oitavas: [], quartas: [], semi: [], terceiro: [], final: [] }
     partidasEncerradas.forEach((p) => { if (p.fase !== 'grupos' && fases[p.fase]) fases[p.fase].push(p) })
     return fases
   }, [partidasEncerradas])
@@ -85,7 +85,6 @@ export default function TabelaPage() {
     <MobileLayout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* HEADER */}
         <div>
           <h1 style={{ marginBottom: 4, color: 'var(--text-primary)' }}>Tabela da Copa</h1>
         </div>
@@ -96,57 +95,66 @@ export default function TabelaPage() {
             background: 'var(--bg-card)', borderRadius: 16, overflow: 'hidden',
             border: '1px solid var(--border)'
           }}>
-            {/* HEADER GRUPO */}
             <div style={{
-              padding: '12px 16px',
-              borderBottom: '1px solid var(--border)',
-              fontWeight: 'bold', fontSize: 16,
-              color: 'var(--text-secondary)',
-              background: '#0f172a'
+              padding: '12px 16px', borderBottom: '1px solid var(--border)',
+              fontWeight: 'bold', fontSize: 16, color: 'var(--text-secondary)', background: '#0f172a'
             }}>
               Grupo {grupo}
             </div>
 
             {/* TABELA */}
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#162032' }}>
-                    <th style={thStyle}>#</th>
-                    <th style={{ ...thStyle, textAlign: 'left' }}>Seleção</th>
-                    <th style={thStyle}>P</th>
-                    <th style={thStyle}>J</th>
-                    <th style={thStyle}>V</th>
-                    <th style={thStyle}>E</th>
-                    <th style={thStyle}>D</th>
-                    <th style={thStyle}>GP</th>
-                    <th style={thStyle}>GC</th>
-                    <th style={thStyle}>SG</th>
+            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: 24 }} />   {/* # */}
+                <col />                         {/* Seleção */}
+                <col style={{ width: 40 }} />   {/* P */}
+                <col style={{ width: 36 }} />   {/* J */}
+                <col style={{ width: 36 }} />   {/* V */}
+                <col style={{ width: 36 }} />   {/* E */}
+                <col style={{ width: 36 }} />   {/* D */}
+                <col style={{ width: 36 }} />   {/* GP */}
+                <col style={{ width: 36 }} />   {/* GC */}
+                <col style={{ width: 40 }} />   {/* SG */}
+              </colgroup>
+              <thead>
+                <tr style={{ background: '#162032' }}>
+                  <th style={thStyle}>#</th>
+                  <th style={{ ...thStyle, textAlign: 'left', paddingLeft: 8 }}>Seleção</th>
+                  <th style={thStyle}>P</th>
+                  <th style={thStyle}>J</th>
+                  <th style={thStyle}>V</th>
+                  <th style={thStyle}>E</th>
+                  <th style={thStyle}>D</th>
+                  <th style={thStyle}>GP</th>
+                  <th style={thStyle}>GC</th>
+                  <th style={thStyle}>SG</th>
+                </tr>
+              </thead>
+              <tbody>
+                {grupos[grupo].map((time: any, index: number) => (
+                  <tr key={time.nome} style={{
+                    borderBottom: '1px solid var(--border)',
+                    background: index < 2 ? 'rgba(59,130,246,0.08)' : 'transparent'
+                  }}>
+                    <td style={tdStyle}>{index + 1}</td>
+                    <td style={{ ...tdStyle, textAlign: 'left', paddingLeft: 8, fontWeight: 600, color: 'var(--text-primary)',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {time.nome}
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 'bold', color: 'var(--text-primary)' }}>{time.pontos}</td>
+                    <td style={tdStyle}>{time.jogos}</td>
+                    <td style={tdStyle}>{time.vitorias}</td>
+                    <td style={tdStyle}>{time.empates}</td>
+                    <td style={tdStyle}>{time.derrotas}</td>
+                    <td style={tdStyle}>{time.golsPro}</td>
+                    <td style={tdStyle}>{time.golsContra}</td>
+                    <td style={{ ...tdStyle, color: time.saldo > 0 ? '#4ade80' : time.saldo < 0 ? '#f87171' : 'var(--text-secondary)' }}>
+                      {time.saldo > 0 ? `+${time.saldo}` : time.saldo}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {grupos[grupo].map((time: any, index: number) => (
-                    <tr key={time.nome} style={{
-                      borderBottom: '1px solid var(--border)',
-                      background: index < 2 ? 'rgba(59,130,246,0.08)' : 'transparent'
-                    }}>
-                      <td style={tdStyle}>{index + 1}</td>
-                      <td style={{ ...tdStyle, textAlign: 'left', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {time.nome}
-                      </td>
-                      <td style={{ ...tdStyle, fontWeight: 'bold', color: 'var(--text-primary)' }}>{time.pontos}</td>
-                      <td style={tdStyle}>{time.jogos}</td>
-                      <td style={tdStyle}>{time.vitorias}</td>
-                      <td style={tdStyle}>{time.empates}</td>
-                      <td style={tdStyle}>{time.derrotas}</td>
-                      <td style={tdStyle}>{time.golsPro}</td>
-                      <td style={tdStyle}>{time.golsContra}</td>
-                      <td style={tdStyle}>{time.saldo}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
 
             {/* JOGOS ENCERRADOS */}
             <div style={{ padding: 16, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -190,20 +198,21 @@ function traduzirFase(fase: string) {
     case 'oitavas': return 'Oitavas de final'
     case 'quartas': return 'Quartas de final'
     case 'semi': return 'Semifinal'
+    case 'terceiro': return 'Disputa de 3° lugar'
     case 'final': return 'Final'
     default: return fase
   }
 }
 
 const thStyle = {
-  padding: '10px 8px', fontSize: 11,
+  padding: '10px 4px', fontSize: 11,
   color: 'var(--text-secondary)',
   textAlign: 'center' as const,
   fontWeight: 600
 }
 
 const tdStyle = {
-  padding: '11px 8px', fontSize: 13,
+  padding: '11px 4px', fontSize: 13,
   color: 'var(--text-secondary)',
   textAlign: 'center' as const
 }

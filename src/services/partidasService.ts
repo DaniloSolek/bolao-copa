@@ -113,6 +113,15 @@ export async function salvarResultado(
   timeClassificadoId: number | null,
   fase: string
 ) {
+  // Busca os IDs dos times da partida para usar no cálculo
+  const { data: partida, error: erroPartida } = await supabase
+    .from('partidas')
+    .select('time_casa_id, time_fora_id')
+    .eq('id', partidaId)
+    .single()
+
+  if (erroPartida) throw erroPartida
+
   const { error } = await supabase
     .from('partidas')
     .update({
@@ -143,6 +152,8 @@ export async function salvarResultado(
       golsCasa,
       golsFora,
       timeClassificadoId,
+      timeCasaId: partida.time_casa_id,
+      timeForaId: partida.time_fora_id,
       eliminatoria
     })
 
@@ -160,6 +171,8 @@ function calcularPontos({
   golsCasa,
   golsFora,
   timeClassificadoId,
+  timeCasaId,
+  timeForaId,
   eliminatoria
 }: {
   palpiteCasa: number
@@ -168,6 +181,8 @@ function calcularPontos({
   golsCasa: number
   golsFora: number
   timeClassificadoId: number | null
+  timeCasaId: number
+  timeForaId: number
   eliminatoria: boolean
 }): number {
 
@@ -194,21 +209,24 @@ function calcularPontos({
 
   const foiPenaltis = timeClassificadoId !== null
 
-  const classificadoReal = foiPenaltis
-    ? timeClassificadoId
-    : vencedorReal === 'casa' ? 'casa' : 'fora' // usamos string para comparar abaixo
+  let acertouClassificado: boolean
 
-  const classificadoPalpite = foiPenaltis
-    ? palpiteClassificadoId
-    : vencedorPalpite === 'casa' ? 'casa' : 'fora'
+  if (!foiPenaltis) {
+    acertouClassificado = acertouResultado
 
-  const acertouClassificado = foiPenaltis
-    ? palpiteClassificadoId === timeClassificadoId
-    : acertouResultado // se não foi pênaltis, acertar resultado = acertar quem passa
+  } else if (vencedorPalpite === 'empate') {
+    acertouClassificado = palpiteClassificadoId === timeClassificadoId
 
-  if (placarExato && acertouClassificado) return 4  // placar exato + quem passa ✓
-  if (placarExato && !acertouClassificado) return 3  // placar exato mas errou quem passa nos pênaltis
-  if (!placarExato && acertouClassificado) return 2  // errou placar mas acertou quem passa
-  if (!placarExato && acertouResultado && !acertouClassificado) return 1 // acertou resultado mas errou quem passa
+  } else {
+    const timeQueJogadorApostou =
+      vencedorPalpite === 'casa' ? timeCasaId : timeForaId
+    acertouClassificado = timeQueJogadorApostou === timeClassificadoId
+  }
+
+  if (placarExato && acertouClassificado) return 4
+  if (placarExato && !acertouClassificado) return 3
+  if (!placarExato && acertouClassificado && acertouResultado) return 2
+  if (!placarExato && acertouClassificado && !acertouResultado) return 1
+  if (!placarExato && !acertouClassificado && acertouResultado) return 1
   return 0
 }
