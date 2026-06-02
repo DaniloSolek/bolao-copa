@@ -45,7 +45,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
         <button onClick={() => setMenuAberto(true)} style={{
           background: 'transparent', border: 'none', color: 'white', fontSize: 26, cursor: 'pointer'
         }}>☰</button>
-        <h1 style={{ fontSize: 18, margin: 0, color: 'white' }}>Bolão Resenhudo</h1>
+        <h1 style={{ fontSize: 18, margin: 0, color: 'white' }}>Bolão Resenhudo 2026</h1>
         <div style={{ width: 26 }} />
       </header>
 

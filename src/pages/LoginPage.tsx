@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div style={{ width: '100%', maxWidth: 350, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <h1 style={{ margin: 0, color: 'var(--text-primary)' }}>Bolão Resenhudo</h1>
+          <h1 style={{ margin: 0, color: 'var(--text-primary)' }}>Bolão Resenhudo 2026</h1>
         </div>
 
         <input placeholder="Usuário" value={username}
@@ -61,13 +61,13 @@ export default function LoginPage() {
 
         {isCadastro ? (
           <>
-            <button onClick={cadastrar} style={btnPrimary}>Cadastrar</button>
-            <button onClick={() => setIsCadastro(false)} style={btnSecondary}>Já tenho conta</button>
+            <button onClick={cadastrar} style={btnPrimary}>Criar</button>
+            <button onClick={() => setIsCadastro(false)} style={btnSecondary}>Já sou usuário</button>
           </>
         ) : (
           <>
             <button onClick={login} style={btnPrimary}>Entrar</button>
-            <button onClick={() => setIsCadastro(true)} style={btnSecondary}>Criar conta</button>
+            <button onClick={() => setIsCadastro(true)} style={btnSecondary}>Criar usuário</button>
           </>
         )}
       </div>

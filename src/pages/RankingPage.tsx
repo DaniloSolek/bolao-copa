@@ -23,6 +23,7 @@ export default function RankingPage() {
     <MobileLayout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <h1 style={{ color: 'var(--text-primary)' }}>Ranking</h1>
+        <span style={{ color: 'var(--text-secondary)' }}>A TABELAAAAAAA, OLHA A TABELAAAAAAAAAAA</span>
         {ranking.map((usuario, index) => (
           <div key={usuario.user_id} style={{
             background: index === 0 ? '#1c2a1a' : 'var(--bg-card)',
