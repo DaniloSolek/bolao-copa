@@ -30,6 +30,9 @@ export default function PalpitesPage() {
     <MobileLayout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <h1 style={{ color: 'var(--text-primary)' }}>Palpites</h1>
+        <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
+          Palpites liberados sempre 24 horas antes da partida
+        </p>
         {partidas.length === 0 && (
           <div style={{
             background: 'var(--bg-card)', padding: 24, borderRadius: 16,
