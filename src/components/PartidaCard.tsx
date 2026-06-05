@@ -1,9 +1,23 @@
 import { useEffect, useState } from 'react'
 import { salvarPalpite, buscarPalpitesDaPartida } from '../services/palpitesService'
 import { getBandeira } from '../utils/bandeiras'
-import { isFaseEliminatoria as isFaseElim } from '../services/partidasService'
+import { getCoresSel } from '../utils/coresSelecoes'
+import { isFaseEliminatoria } from '../services/partidasService'
 
 type Props = { partida: any; palpite?: any; userId?: string }
+
+function traduzirFase(fase: string) {
+  switch (fase) {
+    case 'grupos': return 'Fase de grupos'
+    case 'pre-oitavas': return 'Pré-oitavas'
+    case 'oitavas': return 'Oitavas de final'
+    case 'quartas': return 'Quartas de final'
+    case 'semi': return 'Semifinal'
+    case 'terceiro': return 'Disputa de 3° lugar'
+    case 'final': return 'Final'
+    default: return fase
+  }
+}
 
 export default function PartidaCard({ partida, palpite, userId }: Props) {
   const [golsCasa, setGolsCasa] = useState('')
@@ -14,9 +28,11 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
   const [loadingPalpites, setLoadingPalpites] = useState(false)
 
   const jogoBloqueado = new Date() >= new Date(partida.data_hora)
-  const eliminatoria = isFaseElim(partida.fase)
-
+  const eliminatoria = isFaseEliminatoria(partida.fase)
   const palpiteEmpate = golsCasa !== '' && golsFora !== '' && Number(golsCasa) === Number(golsFora)
+
+  const coresCasa = getCoresSel(partida.timeCasa?.nome)
+  const coresFora = getCoresSel(partida.timeFora?.nome)
 
   useEffect(() => {
     if (palpite) {
@@ -63,30 +79,20 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
     }
   }
 
-  function traduzirFase(fase: string) {
-  switch (fase) {
-    case 'grupos': return 'Fase de grupos'
-    case 'pre-oitavas': return 'Pré-oitavas'
-    case 'oitavas': return 'Oitavas de final'
-    case 'quartas': return 'Quartas de final'
-    case 'semi': return 'Semifinal'
-    case 'terceiro': return 'Disputa de 3° lugar'
-    case 'final': return 'Final'
-    default: return fase
-  }
-}
-
-  const circulo = {
-    width: 42, height: 42, borderRadius: '50%',
-    background: 'var(--bg-input)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24
-  }
-
   const selectStyle = {
     height: 44, borderRadius: 10, width: '100%',
     border: '1px solid var(--border)',
     background: 'var(--bg-input)', color: 'var(--text-primary)',
     padding: '0 12px', fontSize: 14
+  }
+
+  const inputStyle = {
+    width: 60, height: 50, borderRadius: 10,
+    border: 'none',
+    background: 'rgba(0,0,0,0.2)',
+    textAlign: 'center' as const, fontSize: 22,
+    fontWeight: 'bold' as const,
+    flexShrink: 0
   }
 
   return (
@@ -97,7 +103,7 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
       opacity: jogoBloqueado ? 0.7 : 1,
       overflow: 'hidden'
     }}>
-      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ padding: '14px 16px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* CABEÇALHO */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -108,26 +114,46 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
         </div>
 
         {/* TIMES */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={circulo}>{getBandeira(partida.timeCasa?.nome)}</div>
-              <h2 style={{ margin: 0, fontSize: 18, color: 'var(--text-primary)' }}>{partida.timeCasa?.nome}</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+          {/* TIME DA CASA */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: coresCasa.bg, borderRadius: 12,
+            padding: '10px 14px', gap: 12
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 28, flexShrink: 0, width: 32, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>{getBandeira(partida.timeCasa?.nome)}</span>
+              <span style={{ fontWeight: 700, fontSize: 18, color: coresCasa.text,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {partida.timeCasa?.nome}
+              </span>
             </div>
-            <input type="number" min={0} disabled={jogoBloqueado} value={golsCasa}
-              onChange={(e) => { setGolsCasa(e.target.value); setPalpiteClassificadoId('') }}
-              style={{ width: 60, height: 50, borderRadius: 10, border: '1px solid var(--border)',
-                background: 'var(--bg-input)', color: 'var(--text-primary)', textAlign: 'center', fontSize: 22 }} />
+            <input
+              type="number" min={0} disabled={jogoBloqueado}
+              value={golsCasa} onChange={(e) => { setGolsCasa(e.target.value); setPalpiteClassificadoId('') }}
+              style={{ ...inputStyle, color: coresCasa.text }}
+            />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={circulo}>{getBandeira(partida.timeFora?.nome)}</div>
-              <h2 style={{ margin: 0, fontSize: 18, color: 'var(--text-primary)' }}>{partida.timeFora?.nome}</h2>
+
+          {/* TIME VISITANTE */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: coresFora.bg, borderRadius: 12,
+            padding: '10px 14px', gap: 12
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 28, flexShrink: 0, width: 32, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>{getBandeira(partida.timeFora?.nome)}</span>
+              <span style={{ fontWeight: 700, fontSize: 18, color: coresFora.text,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {partida.timeFora?.nome}
+              </span>
             </div>
-            <input type="number" min={0} disabled={jogoBloqueado} value={golsFora}
-              onChange={(e) => { setGolsFora(e.target.value); setPalpiteClassificadoId('') }}
-              style={{ width: 60, height: 50, borderRadius: 10, border: '1px solid var(--border)',
-                background: 'var(--bg-input)', color: 'var(--text-primary)', textAlign: 'center', fontSize: 22 }} />
+            <input
+              type="number" min={0} disabled={jogoBloqueado}
+              value={golsFora} onChange={(e) => { setGolsFora(e.target.value); setPalpiteClassificadoId('') }}
+              style={{ ...inputStyle, color: coresFora.text }}
+            />
           </div>
         </div>
 
@@ -137,11 +163,7 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
             <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
               Empate — quem você acha que passa nos pênaltis?
             </span>
-            <select
-              value={palpiteClassificadoId}
-              onChange={(e) => setPalpiteClassificadoId(e.target.value)}
-              style={selectStyle}
-            >
+            <select value={palpiteClassificadoId} onChange={(e) => setPalpiteClassificadoId(e.target.value)} style={selectStyle}>
               <option value="">Selecionar...</option>
               <option value={String(partida.time_casa_id)}>{partida.timeCasa?.nome}</option>
               <option value={String(partida.time_fora_id)}>{partida.timeFora?.nome}</option>
