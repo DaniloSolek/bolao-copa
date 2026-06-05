@@ -44,6 +44,21 @@ export default function PalpitesPage() {
           return <PartidaCard key={partida.id} partida={partida} palpite={palpite} userId={usuario?.id} />
         })}
       </div>
+      {/* LEGENDA */}
+      <div style={{ padding: '8px 4px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, fontWeight: 600 }}>
+          Sistema de pontuação:
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+          <b> Acertar Placar </b>: Acertar o placar exato da partida (+3 pts)
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+          <b> Acertar Resultado </b>: Acertar que a partida terminou em vitória de um dos times ou empate, mas sem acertar o placar exato (+1 pt)
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+          <b> Acertar Classificado </b>: Acertar qual time avançou para a próxima fase (+1 ponto extra, só para partidas eliminatórias)
+        </p>
+      </div>
     </MobileLayout>
   )
 }
