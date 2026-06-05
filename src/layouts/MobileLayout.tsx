@@ -90,7 +90,7 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
                 </Link>
               )}
             </nav>
-            <div style={{ marginTop: 'auto' }}>
+            <div style={{ marginTop: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
               <button onClick={sair} style={{
                 width: '100%', height: 50, border: 'none', borderRadius: 12,
                 background: '#dc2626', color: 'white', fontSize: 16, fontWeight: 600, cursor: 'pointer'
