@@ -105,16 +105,16 @@ export default function TabelaPage() {
             {/* TABELA */}
             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
               <colgroup>
-                <col style={{ width: 24 }} />   {/* # */}
+                <col style={{ width: 20 }} />   {/* # */}
                 <col />                         {/* Seleção */}
-                <col style={{ width: 40 }} />   {/* P */}
-                <col style={{ width: 36 }} />   {/* J */}
-                <col style={{ width: 36 }} />   {/* V */}
-                <col style={{ width: 36 }} />   {/* E */}
-                <col style={{ width: 36 }} />   {/* D */}
-                <col style={{ width: 36 }} />   {/* GP */}
-                <col style={{ width: 36 }} />   {/* GC */}
-                <col style={{ width: 40 }} />   {/* SG */}
+                <col style={{ width: 28 }} />   {/* P */}
+                <col style={{ width: 24 }} />   {/* J */}
+                <col style={{ width: 24 }} />   {/* V */}
+                <col style={{ width: 24 }} />   {/* E */}
+                <col style={{ width: 24 }} />   {/* D */}
+                <col style={{ width: 24 }} />   {/* GP */}
+                <col style={{ width: 24 }} />   {/* GC */}
+                <col style={{ width: 28 }} />   {/* SG */}
               </colgroup>
               <thead>
                 <tr style={{ background: '#162032' }}>
@@ -205,14 +205,14 @@ function traduzirFase(fase: string) {
 }
 
 const thStyle = {
-  padding: '10px 4px', fontSize: 11,
+  padding: '10px 2px', fontSize: 11,
   color: 'var(--text-secondary)',
   textAlign: 'center' as const,
   fontWeight: 600
 }
 
 const tdStyle = {
-  padding: '11px 4px', fontSize: 13,
+  padding: '11px 2px', fontSize: 12,
   color: 'var(--text-secondary)',
   textAlign: 'center' as const
 }
