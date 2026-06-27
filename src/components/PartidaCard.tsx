@@ -49,7 +49,7 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
       if (jogoBloqueado) { alert('O jogo já começou'); return }
       if (golsCasa === '' || golsFora === '') { alert('Preencha os dois placares'); return }
       if (eliminatoria && palpiteEmpate && !palpiteClassificadoId) {
-        alert('Em fases eliminatórias com empate, selecione quem você acha que passa nos pênaltis')
+        alert('Selecione quem você acha que passa nos pênaltis')
         return
       }
       await salvarPalpite(
@@ -161,7 +161,7 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
         {eliminatoria && palpiteEmpate && !jogoBloqueado && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-              Empate — quem você acha que passa nos pênaltis?
+              Quem passará nos pênaltis?
             </span>
             <select value={palpiteClassificadoId} onChange={(e) => setPalpiteClassificadoId(e.target.value)} style={selectStyle}>
               <option value="">Selecionar...</option>
