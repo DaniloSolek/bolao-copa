@@ -194,7 +194,7 @@ export default function TabelaPage() {
 
 function traduzirFase(fase: string) {
   switch (fase) {
-    case 'pre-oitavas': return 'Pré-oitavas'
+    case 'pre-oitavas': return '16 avos de final'
     case 'oitavas': return 'Oitavas de final'
     case 'quartas': return 'Quartas de final'
     case 'semi': return 'Semifinal'

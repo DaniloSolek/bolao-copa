@@ -9,7 +9,7 @@ type Props = { partida: any; palpite?: any; userId?: string }
 function traduzirFase(fase: string) {
   switch (fase) {
     case 'grupos': return 'Fase de grupos'
-    case 'pre-oitavas': return 'Pré-oitavas'
+    case 'pre-oitavas': return '16 avos de final'
     case 'oitavas': return 'Oitavas de final'
     case 'quartas': return 'Quartas de final'
     case 'semi': return 'Semifinal'
