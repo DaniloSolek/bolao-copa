@@ -126,25 +126,35 @@ export default function RankingPage() {
             </div>
           )}
 
-          {porAcertos.map((e, index) => (
-            <div key={e.user_id} style={{
-              background: 'var(--bg-card)', padding: 14, borderRadius: 12,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              border: '1px solid var(--border)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 24 }}>
-                  #{index + 1}
-                </span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {e.username}
-                </span>
+          {porAcertos.map((e, index) => {
+            const porcentagem = e.jogos_palpitados > 0
+              ? Math.round((e.acertos_resultado / e.jogos_palpitados) * 100)
+              : 0
+            return (
+              <div key={e.user_id} style={{
+                background: 'var(--bg-card)', padding: 14, borderRadius: 12,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                border: '1px solid var(--border)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)', minWidth: 24 }}>
+                    #{index + 1}
+                  </span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {e.username}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {porcentagem}%
+                  </span>
+                  <strong style={{ color: '#ffffff' }}>
+                    {e.acertos_resultado}/{e.jogos_palpitados}
+                  </strong>
+                </div>
               </div>
-              <strong style={{ color: '#ffffff' }}>
-                {e.acertos_resultado}/{e.jogos_palpitados}
-              </strong>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
       </div>
