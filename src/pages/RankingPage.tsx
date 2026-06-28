@@ -31,7 +31,6 @@ export default function RankingPage() {
     .filter((e) => e.jogos_palpitados > 0)
     .sort((a, b) => b.cravadas - a.cravadas)
 
-  // Ordena por acertos de resultado (desc)
   const porAcertos = [...estatisticas]
     .filter((e) => e.jogos_palpitados > 0)
     .sort((a, b) => b.acertos_resultado - a.acertos_resultado)
@@ -47,6 +46,7 @@ export default function RankingPage() {
         {/* =================================== */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <h1 style={{ color: 'var(--text-primary)', margin: 0 }}>Ranking</h1>
+          <span style={{ color: 'var(--text-secondary)' }}>A TABELAAAAAAA, OLHA A TABELAAAAAAAAAAA</span>
 
           {ranking.map((usuario, index) => (
             <div key={usuario.user_id} style={{
