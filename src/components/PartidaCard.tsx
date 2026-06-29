@@ -49,7 +49,7 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
       if (jogoBloqueado) { alert('O jogo já começou'); return }
       if (golsCasa === '' || golsFora === '') { alert('Preencha os dois placares'); return }
       if (eliminatoria && palpiteEmpate && !palpiteClassificadoId) {
-        alert('Selecione quem você acha que passa nos pênaltis')
+        alert('Selecione quem passará de fase')
         return
       }
       await salvarPalpite(
@@ -113,6 +113,11 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
           </span>
         </div>
 
+        {/* INFO */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{'ATENÇÃO: O placar palpitado é válido apenas para os 90 minutos!!!!'}</span>
+        </div>
+
         {/* TIMES */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
@@ -161,7 +166,7 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
         {eliminatoria && palpiteEmpate && !jogoBloqueado && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-              Quem passará nos pênaltis?
+              Selecione quem passará de fase na prorrogação/pênaltis
             </span>
             <select value={palpiteClassificadoId} onChange={(e) => setPalpiteClassificadoId(e.target.value)} style={selectStyle}>
               <option value="">Selecionar...</option>

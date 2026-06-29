@@ -27,7 +27,7 @@ export default function AdminPartidaCard({ partida, recarregar }: Props) {
   async function salvarResultadoHandler() {
     try {
       if (eliminatoria && foiEmpate && !timeClassificadoId) {
-        alert('Informe quem passou de fase nos pênaltis')
+        alert('Informe quem passou de fase')
         return
       }
 
@@ -128,7 +128,7 @@ export default function AdminPartidaCard({ partida, recarregar }: Props) {
           {eliminatoria && foiEmpate && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center' }}>
-                Empate — quem passou nos pênaltis?
+                Empate — quem passou de fase?
               </span>
               <select
                 value={timeClassificadoId}
