@@ -43,17 +43,9 @@ export async function buscarPartidasAbertas() {
 }
 
 export async function criarPartida({
-  timeCasaId,
-  timeForaId,
-  dataHora,
-  fase,
-  grupo
+  timeCasaId, timeForaId, dataHora, fase, grupo
 }: {
-  timeCasaId: number
-  timeForaId: number
-  dataHora: string
-  fase: string
-  grupo: string
+  timeCasaId: number; timeForaId: number; dataHora: string; fase: string; grupo: string
 }) {
   const { error } = await supabase
     .from('partidas')
@@ -61,27 +53,16 @@ export async function criarPartida({
       time_casa_id: timeCasaId,
       time_fora_id: timeForaId,
       data_hora: brasiliaParaUTC(dataHora),
-      fase,
-      grupo
+      fase, grupo
     })
 
   if (error) throw error
 }
 
 export async function editarPartida({
-  partidaId,
-  timeCasaId,
-  timeForaId,
-  dataHora,
-  fase,
-  grupo
+  partidaId, timeCasaId, timeForaId, dataHora, fase, grupo
 }: {
-  partidaId: number
-  timeCasaId: number
-  timeForaId: number
-  dataHora: string
-  fase: string
-  grupo: string
+  partidaId: number; timeCasaId: number; timeForaId: number; dataHora: string; fase: string; grupo: string
 }) {
   const { error } = await supabase
     .from('partidas')
@@ -89,8 +70,7 @@ export async function editarPartida({
       time_casa_id: timeCasaId,
       time_fora_id: timeForaId,
       data_hora: brasiliaParaUTC(dataHora),
-      fase,
-      grupo
+      fase, grupo
     })
     .eq('id', partidaId)
 
@@ -111,9 +91,10 @@ export async function salvarResultado(
   golsCasa: number,
   golsFora: number,
   timeClassificadoId: number | null,
+  golsCasaProrrogacao: number | null,
+  golsForaProrrogacao: number | null,
   fase: string
 ) {
-  // Busca os IDs dos times da partida para usar no cálculo
   const { data: partida, error: erroPartida } = await supabase
     .from('partidas')
     .select('time_casa_id, time_fora_id')
@@ -122,12 +103,19 @@ export async function salvarResultado(
 
   if (erroPartida) throw erroPartida
 
+  // Se foi prorrogação, o classificado é derivado automaticamente do placar
+  const classificadoFinal = golsCasaProrrogacao != null
+    ? (golsCasaProrrogacao > golsForaProrrogacao! ? partida.time_casa_id : partida.time_fora_id)
+    : timeClassificadoId
+
   const { error } = await supabase
     .from('partidas')
     .update({
       gols_casa: golsCasa,
       gols_fora: golsFora,
-      time_classificado_id: timeClassificadoId,
+      gols_casa_prorrogacao: golsCasaProrrogacao,
+      gols_fora_prorrogacao: golsForaProrrogacao,
+      time_classificado_id: classificadoFinal,
       resultado_inserido: true
     })
     .eq('id', partidaId)
@@ -151,7 +139,7 @@ export async function salvarResultado(
       palpiteClassificadoId: palpite.palpite_classificado_id,
       golsCasa,
       golsFora,
-      timeClassificadoId,
+      timeClassificadoId: classificadoFinal,
       timeCasaId: partida.time_casa_id,
       timeForaId: partida.time_fora_id,
       eliminatoria
@@ -165,25 +153,13 @@ export async function salvarResultado(
 }
 
 function calcularPontos({
-  palpiteCasa,
-  palpiteFora,
-  palpiteClassificadoId,
-  golsCasa,
-  golsFora,
-  timeClassificadoId,
-  timeCasaId,
-  timeForaId,
-  eliminatoria
+  palpiteCasa, palpiteFora, palpiteClassificadoId,
+  golsCasa, golsFora, timeClassificadoId,
+  timeCasaId, timeForaId, eliminatoria
 }: {
-  palpiteCasa: number
-  palpiteFora: number
-  palpiteClassificadoId: number | null
-  golsCasa: number
-  golsFora: number
-  timeClassificadoId: number | null
-  timeCasaId: number
-  timeForaId: number
-  eliminatoria: boolean
+  palpiteCasa: number; palpiteFora: number; palpiteClassificadoId: number | null
+  golsCasa: number; golsFora: number; timeClassificadoId: number | null
+  timeCasaId: number; timeForaId: number; eliminatoria: boolean
 }): number {
 
   const placarExato = palpiteCasa === golsCasa && palpiteFora === golsFora
@@ -198,9 +174,6 @@ function calcularPontos({
 
   const acertouResultado = vencedorPalpite === vencedorReal
 
-  // =========================
-  // FASE DE GRUPOS
-  // =========================
   if (!eliminatoria) {
     if (placarExato) return 3
     if (acertouResultado) return 1
@@ -213,13 +186,10 @@ function calcularPontos({
 
   if (!foiPenaltis) {
     acertouClassificado = acertouResultado
-
   } else if (vencedorPalpite === 'empate') {
     acertouClassificado = palpiteClassificadoId === timeClassificadoId
-
   } else {
-    const timeQueJogadorApostou =
-      vencedorPalpite === 'casa' ? timeCasaId : timeForaId
+    const timeQueJogadorApostou = vencedorPalpite === 'casa' ? timeCasaId : timeForaId
     acertouClassificado = timeQueJogadorApostou === timeClassificadoId
   }
 

@@ -95,6 +95,13 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
     flexShrink: 0
   }
 
+  function nomeTimePorId(id: number | null) {
+    if (!id) return null
+    if (Number(partida.timeCasa?.id) === Number(id)) return partida.timeCasa?.nome
+    if (Number(partida.timeFora?.id) === Number(id)) return partida.timeFora?.nome
+    return null
+  }
+
   return (
     <div style={{
       background: 'var(--bg-card)', borderRadius: 16,
@@ -232,6 +239,11 @@ export default function PartidaCard({ partida, palpite, userId }: Props) {
                   <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>NP</span>
                 ) : (
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    {p.palpite_classificado_id && (
+                      <span style={{ fontSize: 11, marginRight: 4, opacity: 0.7, fontWeight: 400 }}>
+                        ({nomeTimePorId(p.palpite_classificado_id)})
+                      </span>
+                    )}
                     {p.palpite_casa} x {p.palpite_fora}
                   </span>
                 )}

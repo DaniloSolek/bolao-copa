@@ -56,8 +56,14 @@ export default function ResultadoCard({ partida, userId }: Props) {
           </div>
           <div style={{ fontWeight: 'bold', fontSize: 18, minWidth: 70, textAlign: 'center', color: 'var(--text-primary)' }}>
             {partida.gols_casa} x {partida.gols_fora}
-            {/* Mostra quem passou nos pênaltis se houver */}
-            {partida.time_classificado_id && (
+            {/* Prorrogação */}
+            {partida.gols_casa_prorrogacao != null && (
+              <div style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-secondary)', marginTop: 2 }}>
+                {partida.gols_casa_prorrogacao}-{partida.gols_fora_prorrogacao} prorr.
+              </div>
+            )}
+            {/* Pênaltis */}
+            {partida.time_classificado_id && partida.gols_casa_prorrogacao == null && (
               <div style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-secondary)', marginTop: 2 }}>
                 pen. {nomeTimePorId(partida.time_classificado_id)}
               </div>
