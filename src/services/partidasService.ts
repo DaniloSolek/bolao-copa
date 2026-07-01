@@ -185,7 +185,12 @@ function calcularPontos({
   let acertouClassificado: boolean
 
   if (!foiPenaltis) {
-    acertouClassificado = acertouResultado
+    if (vencedorPalpite === 'empate' && palpiteClassificadoId !== null) {
+      const timeVencedorReal = vencedorReal === 'casa' ? timeCasaId : timeForaId
+      acertouClassificado = palpiteClassificadoId === timeVencedorReal
+    } else {
+      acertouClassificado = acertouResultado
+    }
   } else if (vencedorPalpite === 'empate') {
     acertouClassificado = palpiteClassificadoId === timeClassificadoId
   } else {
